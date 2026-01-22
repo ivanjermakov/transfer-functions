@@ -6,6 +6,7 @@ in vec2 uv;
 uniform sampler2D tex;
 uniform uint mode;
 uniform float exposure;
+uniform uint transferFn;
 
 out vec4 fragColor;
 

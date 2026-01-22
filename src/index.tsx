@@ -12,6 +12,8 @@ let program!: WebGLProgram
 
 type Mode = 'sweep' | 'image'
 const aspectRatio = 16 / 9
+const transferFns = ['none']
+type TransferFn = (typeof transferFns)[number]
 const images = ['primaries-sweep', 'highlight-desaturation', 'cornell-box']
 type Image = (typeof images)[number]
 const texture: Record<Image, WebGLTexture | undefined> = {
@@ -24,6 +26,7 @@ export const Main: Component = () => {
     const [loaded, setLoaded] = createSignal(false)
     const [mode, setMode] = createSignal<Mode>('image')
     const [image, setImage] = createSignal<Image>('primaries-sweep')
+    const [transferFn, setTransferFn] = createSignal<TransferFn>('none')
     const [exposure, setExposure] = createSignal(1)
 
     onMount(async () => {
@@ -75,6 +78,7 @@ export const Main: Component = () => {
         const activeImage_ = image()
         const activeMode_ = mode()
         const exposure_ = exposure()
+        const transferFn_ = transferFn()
         if (!loaded_) return
 
         gl.bindTexture(gl.TEXTURE_2D, texture[activeImage_]!)
@@ -82,6 +86,8 @@ export const Main: Component = () => {
         gl.uniform1ui(modeLocation, activeMode_ === 'sweep' ? 0 : 1)
         const exposureLocation = gl.getUniformLocation(program, 'exposure')
         gl.uniform1f(exposureLocation, exposure_)
+        const transferFnLocation = gl.getUniformLocation(program, 'transferFn')
+        gl.uniform1ui(transferFnLocation, transferFns.indexOf(transferFn_))
 
         update()
     })
@@ -143,9 +149,23 @@ export const Main: Component = () => {
                     </For>
                 </section>
                 <section>
+                    <label>Transfer function</label>
+                    <For each={transferFns}>
+                        {fn => (
+                            <button
+                                type="button"
+                                onClick={() => setTransferFn(fn)}
+                                classList={{ active: fn === transferFn() }}
+                            >
+                                {fn}
+                            </button>
+                        )}
+                    </For>
+                </section>
+                <section>
                     <label>Render</label>
                     <label>
-                        Exposure{' '}
+                        Exposure
                         <input
                             type="number"
                             min={0}

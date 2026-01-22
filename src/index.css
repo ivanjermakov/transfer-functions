@@ -139,9 +139,15 @@ select {
             flex-direction: column;
             gap: .25rem;
 
-            label:first-child {
-                font-size: .8rem;
-                color: var(--fg3);
+            label {
+                display: inline-flex;
+                align-items: center;
+                gap: .5rem;
+
+                &:first-child {
+                    font-size: .8rem;
+                    color: var(--fg3);
+                }
             }
         }
     }
