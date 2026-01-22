@@ -144,10 +144,18 @@ select {
                 align-items: center;
                 gap: .5rem;
 
+                span {
+                    min-width: 8ch;
+                }
+
                 &:first-child {
                     font-size: .8rem;
                     color: var(--fg3);
                 }
+            }
+
+            input {
+                width: 100%;
             }
         }
     }

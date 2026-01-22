@@ -1,5 +1,5 @@
 /* @refresh reload */
-import { Component, For, createEffect, createSignal, onMount } from 'solid-js'
+import { Component, For, createEffect, createSignal, onMount, untrack } from 'solid-js'
 import { render } from 'solid-js/web'
 import * as exrLoader from 'three/examples/jsm/loaders/EXRLoader'
 import fragmentGlsl from './fragment.glsl?raw'
@@ -28,6 +28,7 @@ export const Main: Component = () => {
     const [image, setImage] = createSignal<Image>('primaries-sweep')
     const [transferFn, setTransferFn] = createSignal<TransferFn>('none')
     const [exposure, setExposure] = createSignal(1)
+    const [ev, setEv] = createSignal(0)
 
     onMount(async () => {
         gl = canvas.getContext('webgl2', { antialiasing: false })! as WebGL2RenderingContext
@@ -90,6 +91,16 @@ export const Main: Component = () => {
         gl.uniform1ui(transferFnLocation, transferFns.indexOf(transferFn_))
 
         update()
+    })
+
+    createEffect(() => {
+        const exposure_ = exposure()
+        untrack(() => setEv(Math.log2(exposure_)))
+    })
+
+    createEffect(() => {
+        const ev_ = ev()
+        untrack(() => setExposure(2 ** ev_))
     })
 
     const update = () => {
@@ -165,7 +176,11 @@ export const Main: Component = () => {
                 <section>
                     <label>Render</label>
                     <label>
-                        Exposure
+                        <span>EV</span>
+                        <input type="number" step={1} value={ev()} onChange={e => setEv(e.target.valueAsNumber)} />
+                    </label>
+                    <label>
+                        <span>Exposure</span>
                         <input
                             type="number"
                             min={0}
