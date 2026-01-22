@@ -1,0 +1,22 @@
+{
+    "name": "transfer-functions",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "start": "vite",
+        "build": "tsgo && vite build"
+    },
+    "dependencies": {
+        "solid-js": "1.9.10",
+        "three": "0.182.0"
+    },
+    "devDependencies": {
+        "@types/node": "24.10.1",
+        "@typescript/native-preview": "7.0.0-dev.20251213.1",
+        "typescript": "5.9.3",
+        "vite": "7.2.4",
+        "vite-plugin-solid": "2.11.10",
+        "@types/three": "0.182.0"
+    }
+}
