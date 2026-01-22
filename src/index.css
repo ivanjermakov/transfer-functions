@@ -132,12 +132,17 @@ select {
     .controls {
         display: flex;
         flex-direction: column;
-        gap: .5rem;
+        gap: 1rem;
 
         section {
             display: flex;
             flex-direction: column;
             gap: .25rem;
+
+            label:first-child {
+                font-size: .8rem;
+                color: var(--fg3);
+            }
         }
     }
 }

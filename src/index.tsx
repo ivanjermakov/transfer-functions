@@ -24,6 +24,7 @@ export const Main: Component = () => {
     const [loaded, setLoaded] = createSignal(false)
     const [activeMode, setActiveMode] = createSignal<Mode>('image')
     const [activeImage, setActiveImage] = createSignal<Image>('primaries-sweep')
+    const [exposure, setExposure] = createSignal(1)
 
     onMount(async () => {
         gl = canvas.getContext('webgl2', { antialiasing: false })! as WebGL2RenderingContext
@@ -73,11 +74,14 @@ export const Main: Component = () => {
         const loaded_ = loaded()
         const activeImage_ = activeImage()
         const activeMode_ = activeMode()
+        const exposure_ = exposure()
         if (!loaded_) return
 
         gl.bindTexture(gl.TEXTURE_2D, texture[activeImage_]!)
         const modeLocation = gl.getUniformLocation(program, 'mode')
         gl.uniform1ui(modeLocation, activeMode_ === 'sweep' ? 0 : 1)
+        const exposureLocation = gl.getUniformLocation(program, 'exposure')
+        gl.uniform1f(exposureLocation, exposure_)
 
         update()
     })
@@ -137,6 +141,19 @@ export const Main: Component = () => {
                             </button>
                         )}
                     </For>
+                </section>
+                <section>
+                    <label>Render</label>
+                    <label>
+                        Exposure{' '}
+                        <input
+                            type="number"
+                            min={0}
+                            step={0.1}
+                            value={exposure()}
+                            onChange={e => setExposure(e.target.valueAsNumber)}
+                        />
+                    </label>
                 </section>
             </div>
         </>

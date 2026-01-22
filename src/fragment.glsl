@@ -5,6 +5,7 @@ in vec2 uv;
 
 uniform sampler2D tex;
 uniform uint mode;
+uniform float exposure;
 
 out vec4 fragColor;
 
@@ -39,8 +40,6 @@ vec3 tfRaw(vec3 x) {
 }
 
 void main() {
-    float exposure = 1.;
-
     vec3 inp;
     if (mode == 0u) {
         float hue = 1. - uv.y;
