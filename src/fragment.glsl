@@ -1,6 +1,8 @@
-precision mediump float;
+precision highp float;
 
 varying vec2 v_uv;
+
+uniform sampler2D u_texture;
 
 float hueToRgb(float p, float q, float t) {
     if (t < 0.) t += 1.;
@@ -33,10 +35,17 @@ vec3 tfRaw(vec3 x) {
 }
 
 void main() {
-    float hue = 1. - v_uv.y;
-    vec3 color = hslToRgb(vec3(hue, 1., .5));
-    float intensity = v_uv.x * 2.;
-    vec3 light = color * intensity;
+    float exposure = 1.;
+    // float hue = 1. - v_uv.y;
+    // vec3 color = hslToRgb(vec3(hue, 1., .5));
+    // float intensity = v_uv.x * 2.;
+    // vec3 light = color * intensity;
+    // vec3 mapped = tfRaw(light);
+    // gl_FragColor = vec4(mapped, 1.);
+
+    vec2 uv = vec2(v_uv.x, v_uv.y);
+    vec3 texel = texture2D(u_texture, uv).rgb;
+    vec3 light = texel * exposure;
     vec3 mapped = tfRaw(light);
     gl_FragColor = vec4(mapped, 1.);
 }
