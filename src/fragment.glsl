@@ -45,12 +45,14 @@ void main() {
         float hue = 1. - uv.y;
         vec3 color = hslToRgb(vec3(hue, 1., .5));
         float intensity = uv.x * 2.;
-        inp = color * intensity;
+        inp = color * intensity * exposure;
     } else {
         vec3 texel = texture(tex, uv).rgb;
         inp = texel * exposure;
     }
 
-    vec3 mapped = tfRaw(inp);
-    fragColor = vec4(mapped, 1.);
+    vec3 outp;
+    outp = tfRaw(inp);
+
+    fragColor = vec4(outp, 1.);
 }

@@ -22,8 +22,8 @@ const texture: Record<Image, WebGLTexture | undefined> = {
 
 export const Main: Component = () => {
     const [loaded, setLoaded] = createSignal(false)
-    const [activeMode, setActiveMode] = createSignal<Mode>('image')
-    const [activeImage, setActiveImage] = createSignal<Image>('primaries-sweep')
+    const [mode, setMode] = createSignal<Mode>('image')
+    const [image, setImage] = createSignal<Image>('primaries-sweep')
     const [exposure, setExposure] = createSignal(1)
 
     onMount(async () => {
@@ -72,8 +72,8 @@ export const Main: Component = () => {
 
     createEffect(() => {
         const loaded_ = loaded()
-        const activeImage_ = activeImage()
-        const activeMode_ = activeMode()
+        const activeImage_ = image()
+        const activeMode_ = mode()
         const exposure_ = exposure()
         if (!loaded_) return
 
@@ -116,13 +116,13 @@ export const Main: Component = () => {
                 <section>
                     <label>Mode</label>
                     <For each={['sweep', 'image']}>
-                        {mode => (
+                        {m => (
                             <button
                                 type="button"
-                                onClick={() => setActiveMode(mode as Mode)}
-                                classList={{ active: mode === activeMode() }}
+                                onClick={() => setMode(m as Mode)}
+                                classList={{ active: m === mode() }}
                             >
-                                {mode}
+                                {m}
                             </button>
                         )}
                     </For>
@@ -130,14 +130,14 @@ export const Main: Component = () => {
                 <section>
                     <label>Image</label>
                     <For each={images}>
-                        {image => (
+                        {img => (
                             <button
                                 type="button"
-                                onClick={() => setActiveImage(image)}
-                                classList={{ active: activeMode() === 'image' && image === activeImage() }}
-                                disabled={activeMode() !== 'image'}
+                                onClick={() => setImage(img)}
+                                classList={{ active: mode() === 'image' && img === image() }}
+                                disabled={mode() !== 'image'}
                             >
-                                {image}
+                                {img}
                             </button>
                         )}
                     </For>
