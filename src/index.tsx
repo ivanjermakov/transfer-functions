@@ -14,13 +14,9 @@ type Mode = 'sweep' | 'image'
 const aspectRatio = 16 / 9
 const transferFns = ['none', 'reinhard', 'hable-filmic', 'aces']
 type TransferFn = (typeof transferFns)[number]
-const images = ['primaries-sweep', 'highlight-desaturation', 'cornell-box']
+const images = ['primaries-sweep', 'highlight-desaturation', 'cornell-box', 'additive-light']
 type Image = (typeof images)[number]
-const texture: Record<Image, WebGLTexture | undefined> = {
-    'primaries-sweep': undefined,
-    'highlight-desaturation': undefined,
-    'cornell-box': undefined
-}
+const texture: Record<Image, WebGLTexture | undefined> = Object.fromEntries(images.map(i => [i, undefined]))
 
 export const Main: Component = () => {
     const [loaded, setLoaded] = createSignal(false)
