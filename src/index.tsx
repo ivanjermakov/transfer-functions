@@ -10,6 +10,7 @@ let canvas!: HTMLCanvasElement
 let gl!: WebGL2RenderingContext
 let program!: WebGLProgram
 
+const aspectRatio = 16 / 9
 const images = ['primaries-sweep', 'highlight-desaturation', 'cornell-box']
 type Image = (typeof images)[number]
 const texture: Record<Image, WebGLTexture | undefined> = {
@@ -23,8 +24,8 @@ export const Main: Component = () => {
 
     onMount(async () => {
         gl = canvas.getContext('webgl2', { antialiasing: false })! as WebGL2RenderingContext
-        canvas.width = 1280
         canvas.height = 720
+        canvas.width = canvas.height * aspectRatio
         const dpr = window.devicePixelRatio
         canvas.style.width = `${canvas.width / dpr}px`
         canvas.style.height = `${canvas.height / dpr}px`
@@ -52,39 +53,35 @@ export const Main: Component = () => {
         gl.linkProgram(program)
         gl.useProgram(program)
 
-        const positionAttributeLocation = gl.getAttribLocation(program, 'a_position')
+        const positionAttributeLocation = gl.getAttribLocation(program, 'position')
         const positionBuffer = gl.createBuffer()
         gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-
-        const uniformLocation = gl.getUniformLocation(program, 'u_texture')
-        gl.activeTexture(gl.TEXTURE0)
-        gl.bindTexture(gl.TEXTURE_2D, texture[activeImage()]!)
-        gl.uniform1i(uniformLocation, 0)
-
         const positions = [-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0]
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW)
-
-        gl.viewport(0, 0, canvas.width, canvas.height)
-        gl.clearColor(0, 0, 0, 1)
-        gl.clear(gl.COLOR_BUFFER_BIT)
-
         gl.enableVertexAttribArray(positionAttributeLocation)
         gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0)
 
-        gl.drawArrays(gl.TRIANGLES, 0, 6)
+        gl.bindTexture(gl.TEXTURE_2D, texture[activeImage()]!)
+
+        update()
     })
 
     createEffect(() => {
         const activeImage_ = activeImage()
         if (!gl || !program) return
 
-        const uniformLocation = gl.getUniformLocation(program, 'u_texture')
-        gl.activeTexture(gl.TEXTURE0)
         gl.bindTexture(gl.TEXTURE_2D, texture[activeImage_]!)
-        gl.uniform1i(uniformLocation, 0)
+
+        update()
+    })
+
+    const update = () => {
+        gl.viewport(0, 0, canvas.width, canvas.height)
+        gl.clearColor(0, 0, 0, 1)
+        gl.clear(gl.COLOR_BUFFER_BIT)
 
         gl.drawArrays(gl.TRIANGLES, 0, 6)
-    })
+    }
 
     const createShader = (type: number, source: string) => {
         const shader = gl.createShader(type)!
