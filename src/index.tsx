@@ -10,7 +10,8 @@ let canvas!: HTMLCanvasElement
 let gl!: WebGL2RenderingContext
 let program!: WebGLProgram
 
-type Mode = 'sweep' | 'image'
+const modes = ['sweep', 'grayscale', 'image']
+type Mode = (typeof modes)[number]
 const aspectRatio = 16 / 9
 const transferFns = ['none', 'reinhard', 'hable-filmic', 'aces']
 type TransferFn = (typeof transferFns)[number]
@@ -72,15 +73,15 @@ export const Main: Component = () => {
 
     createEffect(() => {
         const loaded_ = loaded()
-        const activeImage_ = image()
-        const activeMode_ = mode()
+        const image_ = image()
+        const mode_ = mode()
         const exposure_ = exposure()
         const transferFn_ = transferFn()
         if (!loaded_) return
 
-        gl.bindTexture(gl.TEXTURE_2D, texture[activeImage_]!)
+        gl.bindTexture(gl.TEXTURE_2D, texture[image_]!)
         const modeLocation = gl.getUniformLocation(program, 'mode')
-        gl.uniform1ui(modeLocation, activeMode_ === 'sweep' ? 0 : 1)
+        gl.uniform1ui(modeLocation, modes.indexOf(mode_))
         const exposureLocation = gl.getUniformLocation(program, 'exposure')
         gl.uniform1f(exposureLocation, exposure_)
         const transferFnLocation = gl.getUniformLocation(program, 'transferFn')
@@ -128,13 +129,9 @@ export const Main: Component = () => {
                 <h2>Controls</h2>
                 <section>
                     <label>Mode</label>
-                    <For each={['sweep', 'image']}>
+                    <For each={modes}>
                         {m => (
-                            <button
-                                type="button"
-                                onClick={() => setMode(m as Mode)}
-                                classList={{ active: m === mode() }}
-                            >
+                            <button type="button" onClick={() => setMode(m)} classList={{ active: m === mode() }}>
                                 {m}
                             </button>
                         )}

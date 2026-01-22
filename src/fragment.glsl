@@ -92,7 +92,9 @@ void main() {
         vec3 color = hslToRgb(vec3(hue, 1., .5));
         float intensity = pow(uv.x * 4., 2.);
         inp = color * intensity * exposure;
-    } else {
+    } else if (mode == 1u) {
+        inp = vec3(uv.x);
+    } else if (mode == 2u) {
         vec3 texel = texture(tex, uv).rgb;
         inp = texel * exposure;
     }
