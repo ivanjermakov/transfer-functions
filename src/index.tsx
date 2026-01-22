@@ -10,6 +10,7 @@ let canvas!: HTMLCanvasElement
 let gl!: WebGL2RenderingContext
 let program!: WebGLProgram
 
+type Mode = 'sweep' | 'image'
 const aspectRatio = 16 / 9
 const images = ['primaries-sweep', 'highlight-desaturation', 'cornell-box']
 type Image = (typeof images)[number]
@@ -20,7 +21,8 @@ const texture: Record<Image, WebGLTexture | undefined> = {
 }
 
 export const Main: Component = () => {
-    const [activeImage, setActiveImage] = createSignal<Image>('primaries-sweep')
+    const [activeMode, setActiveMode] = createSignal<Mode>('image', { equals: false })
+    const [activeImage, setActiveImage] = createSignal<Image>('primaries-sweep', { equals: false })
 
     onMount(async () => {
         gl = canvas.getContext('webgl2', { antialiasing: false })! as WebGL2RenderingContext
@@ -61,16 +63,20 @@ export const Main: Component = () => {
         gl.enableVertexAttribArray(positionAttributeLocation)
         gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0)
 
-        gl.bindTexture(gl.TEXTURE_2D, texture[activeImage()]!)
+        setActiveImage('primaries-sweep')
+        setActiveMode('image')
 
         update()
     })
 
     createEffect(() => {
         const activeImage_ = activeImage()
+        const activeMode_ = activeMode()
         if (!gl || !program) return
 
         gl.bindTexture(gl.TEXTURE_2D, texture[activeImage_]!)
+        const modeLocation = gl.getUniformLocation(program, 'mode')
+        gl.uniform1ui(modeLocation, activeMode_ === 'sweep' ? 0 : 1)
 
         update()
     })
@@ -103,13 +109,28 @@ export const Main: Component = () => {
             <div class="controls">
                 <h2>Controls</h2>
                 <section>
+                    <label>Mode</label>
+                    <For each={['sweep', 'image']}>
+                        {mode => (
+                            <button
+                                type="button"
+                                onClick={() => setActiveMode(mode as Mode)}
+                                classList={{ active: mode === activeMode() }}
+                            >
+                                {mode}
+                            </button>
+                        )}
+                    </For>
+                </section>
+                <section>
                     <label>Image</label>
                     <For each={images}>
                         {image => (
                             <button
                                 type="button"
                                 onClick={() => setActiveImage(image)}
-                                classList={{ active: image === activeImage() }}
+                                classList={{ active: activeMode() === 'image' && image === activeImage() }}
+                                disabled={activeMode() !== 'image'}
                             >
                                 {image}
                             </button>
