@@ -21,8 +21,9 @@ const texture: Record<Image, WebGLTexture | undefined> = {
 }
 
 export const Main: Component = () => {
-    const [activeMode, setActiveMode] = createSignal<Mode>('image', { equals: false })
-    const [activeImage, setActiveImage] = createSignal<Image>('primaries-sweep', { equals: false })
+    const [loaded, setLoaded] = createSignal(false)
+    const [activeMode, setActiveMode] = createSignal<Mode>('image')
+    const [activeImage, setActiveImage] = createSignal<Image>('primaries-sweep')
 
     onMount(async () => {
         gl = canvas.getContext('webgl2', { antialiasing: false })! as WebGL2RenderingContext
@@ -63,16 +64,16 @@ export const Main: Component = () => {
         gl.enableVertexAttribArray(positionAttributeLocation)
         gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0)
 
-        setActiveImage('primaries-sweep')
-        setActiveMode('image')
+        setLoaded(true)
 
         update()
     })
 
     createEffect(() => {
+        const loaded_ = loaded()
         const activeImage_ = activeImage()
         const activeMode_ = activeMode()
-        if (!gl || !program) return
+        if (!loaded_) return
 
         gl.bindTexture(gl.TEXTURE_2D, texture[activeImage_]!)
         const modeLocation = gl.getUniformLocation(program, 'mode')
