@@ -9,6 +9,14 @@ import vertexGlsl from './vertex.glsl?raw'
 let canvas!: HTMLCanvasElement
 let gl!: WebGL2RenderingContext
 
+const images = ['primaries-sweep', 'highlight-desaturation', 'cornell-box']
+type Image = (typeof images)[number]
+const texture: Record<Image, WebGLTexture | undefined> = {
+    'primaries-sweep': undefined,
+    'highlight-desaturation': undefined,
+    'cornell-box': undefined
+}
+
 export const Main: Component = () => {
     onMount(async () => {
         gl = canvas.getContext('webgl2', { antialiasing: false })! as WebGL2RenderingContext
@@ -18,16 +26,19 @@ export const Main: Component = () => {
         canvas.style.width = `${canvas.width / dpr}px`
         canvas.style.height = `${canvas.height / dpr}px`
 
-        // const res = await fetch('primaries-sweep.exr')
-        // const res = await fetch('highlight-desaturation.exr')
-        const res = await fetch('cornell-box.exr')
-        const array = await res.arrayBuffer()
-        const exr = new exrLoader.EXRLoader().parse(array)
-        const texture = gl.createTexture()
-        gl.bindTexture(gl.TEXTURE_2D, texture)
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, exr.width, exr.height, 0, gl.RGBA, gl.HALF_FLOAT, exr.data)
+        await Promise.all(
+            Object.keys(texture).map(async name => {
+                const res = await fetch(`${name}.exr`)
+                const array = await res.arrayBuffer()
+                const exr = new exrLoader.EXRLoader().parse(array)
+                const tex = gl.createTexture()
+                gl.bindTexture(gl.TEXTURE_2D, tex)
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, exr.width, exr.height, 0, gl.RGBA, gl.HALF_FLOAT, exr.data)
+                texture[name as any] = tex
+            })
+        )
 
         const vertexShader = createShader(gl.VERTEX_SHADER, vertexGlsl)
         const fragmentShader = createShader(gl.FRAGMENT_SHADER, fragmentGlsl)
@@ -44,7 +55,7 @@ export const Main: Component = () => {
 
         const uniformLocation = gl.getUniformLocation(program, 'u_texture')
         gl.activeTexture(gl.TEXTURE0)
-        gl.bindTexture(gl.TEXTURE_2D, texture)
+        gl.bindTexture(gl.TEXTURE_2D, texture['cornell-box']!)
         gl.uniform1i(uniformLocation, 0)
 
         const positions = [-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0]
