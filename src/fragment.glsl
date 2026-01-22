@@ -7,6 +7,7 @@ uniform sampler2D tex;
 uniform uint mode;
 uniform float exposure;
 uniform uint transferFn;
+uniform float gamma;
 
 out vec4 fragColor;
 
@@ -85,19 +86,24 @@ vec3 tfAces(vec3 v) {
     return outputMatrix * va;
 }
 
+vec3 gammaCorrection(vec3 v, float gamma) {
+    return pow(v, vec3(1. / gamma));
+}
+
 void main() {
     vec3 inp;
     if (mode == 0u) {
         float hue = 1. - uv.y;
         vec3 color = hslToRgb(vec3(hue, 1., .5));
-        float intensity = pow(uv.x * 4., 2.);
-        inp = color * intensity * exposure;
+        float intensity = uv.x * 10.;
+        inp = color * intensity;
     } else if (mode == 1u) {
         inp = vec3(uv.x);
     } else if (mode == 2u) {
         vec3 texel = texture(tex, uv).rgb;
-        inp = texel * exposure;
+        inp = texel;
     }
+    inp *= exposure;
 
     vec3 outp;
     if (transferFn == 0u) {
@@ -110,5 +116,6 @@ void main() {
         outp = tfAces(inp);
     }
 
+    outp = gammaCorrection(outp, gamma);
     fragColor = vec4(outp, 1.);
 }

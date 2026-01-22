@@ -1,6 +1,7 @@
 /* @refresh reload */
 import { Component, For, createEffect, createSignal, onMount, untrack } from 'solid-js'
 import { render } from 'solid-js/web'
+import { Color, Vector2 } from 'three'
 import * as exrLoader from 'three/examples/jsm/loaders/EXRLoader'
 import fragmentGlsl from './fragment.glsl?raw'
 import './index.css'
@@ -22,10 +23,11 @@ const texture: Record<Image, WebGLTexture | undefined> = Object.fromEntries(imag
 export const Main: Component = () => {
     const [loaded, setLoaded] = createSignal(false)
     const [mode, setMode] = createSignal<Mode>('image')
-    const [image, setImage] = createSignal<Image>('primaries-sweep')
+    const [image, setImage] = createSignal<Image>('cornell-box')
     const [transferFn, setTransferFn] = createSignal<TransferFn>('none')
     const [exposure, setExposure] = createSignal(1)
     const [ev, setEv] = createSignal(0)
+    const [gamma, setGamma] = createSignal(2.2)
 
     onMount(async () => {
         gl = canvas.getContext('webgl2', { antialiasing: false })! as WebGL2RenderingContext
@@ -77,6 +79,7 @@ export const Main: Component = () => {
         const mode_ = mode()
         const exposure_ = exposure()
         const transferFn_ = transferFn()
+        const gamma_ = gamma()
         if (!loaded_) return
 
         gl.bindTexture(gl.TEXTURE_2D, texture[image_]!)
@@ -86,6 +89,8 @@ export const Main: Component = () => {
         gl.uniform1f(exposureLocation, exposure_)
         const transferFnLocation = gl.getUniformLocation(program, 'transferFn')
         gl.uniform1ui(transferFnLocation, transferFns.indexOf(transferFn_))
+        const gammaLocation = gl.getUniformLocation(program, 'gamma')
+        gl.uniform1f(gammaLocation, gamma_)
 
         update()
     })
@@ -181,6 +186,23 @@ export const Main: Component = () => {
                             value={exposure()}
                             onChange={e => setExposure(e.target.valueAsNumber)}
                         />
+                    </label>
+                    <label>
+                        <span>Gamma</span>
+                        <div>
+                            <input
+                                type="checkbox"
+                                checked={gamma() !== 1}
+                                onChange={e => setGamma(e.target.checked ? 2.2 : 1)}
+                            />
+                            <input
+                                type="number"
+                                min={0}
+                                step={0.1}
+                                value={gamma()}
+                                onChange={e => setGamma(e.target.valueAsNumber)}
+                            />
+                        </div>
                     </label>
                 </section>
             </div>
