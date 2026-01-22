@@ -40,6 +40,10 @@ vec3 tfRaw(vec3 x) {
     return x;
 }
 
+vec3 tfReinhard(vec3 x) {
+    return x / (1. + x);
+}
+
 void main() {
     vec3 inp;
     if (mode == 0u) {
@@ -53,7 +57,11 @@ void main() {
     }
 
     vec3 outp;
-    outp = tfRaw(inp);
+    if (transferFn == 0u) {
+        outp = tfRaw(inp);
+    } else if (transferFn == 1u) {
+        outp = tfReinhard(inp);
+    }
 
     fragColor = vec4(outp, 1.);
 }
