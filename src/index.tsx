@@ -12,7 +12,7 @@ let program!: WebGLProgram
 
 type Mode = 'sweep' | 'image'
 const aspectRatio = 16 / 9
-const transferFns = ['none', 'reinhard']
+const transferFns = ['none', 'reinhard', 'hable-filmic']
 type TransferFn = (typeof transferFns)[number]
 const images = ['primaries-sweep', 'highlight-desaturation', 'cornell-box']
 type Image = (typeof images)[number]
