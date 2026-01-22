@@ -30,8 +30,11 @@ export const Main: Component = () => {
     const [gamma, setGamma] = createSignal(2.2)
 
     onMount(async () => {
-        gl = canvas.getContext('webgl2', { antialiasing: false })! as WebGL2RenderingContext
-        canvas.height = 720
+        gl = canvas.getContext('webgl2', {
+            antialiasing: false,
+            preserveDrawingBuffer: true
+        })! as WebGL2RenderingContext
+        canvas.height = 900
         canvas.width = canvas.height * aspectRatio
         const dpr = window.devicePixelRatio
         canvas.style.width = `${canvas.width / dpr}px`
@@ -71,6 +74,18 @@ export const Main: Component = () => {
         setLoaded(true)
 
         update()
+
+        canvas.addEventListener('mousemove', event => {
+            const dpr = window.devicePixelRatio
+            const pos = new Vector2(event.offsetX * dpr, event.offsetY * dpr).floor()
+            const color = getPixelColor(pos)
+            const e = exposure()
+            const components = [color.r, color.g, color.b]
+            console.info(
+                components.map(c => (c / 255).toFixed(2)).join(', '),
+                `(${components.map(c => (c / 255 / e).toFixed(2)).join(', ')})`
+            )
+        })
     })
 
     createEffect(() => {
@@ -111,6 +126,7 @@ export const Main: Component = () => {
         gl.clear(gl.COLOR_BUFFER_BIT)
 
         gl.drawArrays(gl.TRIANGLES, 0, 6)
+        gl.finish()
     }
 
     const createShader = (type: number, source: string) => {
@@ -125,6 +141,13 @@ export const Main: Component = () => {
         }
 
         return shader
+    }
+
+    const getPixelColor = (screenPos: Vector2): Color => {
+        update()
+        const pixels = new Uint8Array(4)
+        gl.readPixels(screenPos.x, canvas.height - screenPos.y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels)
+        return new Color().fromArray(pixels)
     }
 
     return (
