@@ -63,13 +63,34 @@ vec3 tfHableFilmic(vec3 v) {
     return curr * white_scale;
 }
 
+vec3 rttOdtFit(vec3 v) {
+    vec3 a = v * (v + 0.0245786) - 0.000090537;
+    vec3 b = v * (0.983729 * v + 0.4329510) + 0.238081;
+    return a / b;
+}
+
+vec3 tfAces(vec3 v) {
+    mat3 inputMatrix = mat3(
+        0.59719, 0.07600, 0.02840,
+        0.35458, 0.90834, 0.13383,
+        0.04823, 0.01566, 0.83777
+    );
+    mat3 outputMatrix = mat3(
+        1.60475, -0.10208, -0.00327,
+        -0.53108,  1.10813, -0.07276,
+        -0.07367, -0.00605,  1.07602
+    );
+    vec3 va = inputMatrix * v;
+    va = rttOdtFit(va);
+    return outputMatrix * va;
+}
 
 void main() {
     vec3 inp;
     if (mode == 0u) {
         float hue = 1. - uv.y;
         vec3 color = hslToRgb(vec3(hue, 1., .5));
-        float intensity = uv.x * 2.;
+        float intensity = pow(uv.x * 4., 2.);
         inp = color * intensity * exposure;
     } else {
         vec3 texel = texture(tex, uv).rgb;
@@ -83,6 +104,8 @@ void main() {
         outp = tfReinhard(inp);
     } else if (transferFn == 2u) {
         outp = tfHableFilmic(inp);
+    } else if (transferFn == 3u) {
+        outp = tfAces(inp);
     }
 
     fragColor = vec4(outp, 1.);
