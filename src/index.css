@@ -127,5 +127,17 @@ select {
 
 #root {
     display: flex;
-    overflow: auto;
+    gap: 1rem;
+
+    .controls {
+        display: flex;
+        flex-direction: column;
+        gap: .5rem;
+
+        section {
+            display: flex;
+            flex-direction: column;
+            gap: .25rem;
+        }
+    }
 }

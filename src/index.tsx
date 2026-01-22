@@ -1,5 +1,5 @@
 /* @refresh reload */
-import { Component, onMount } from 'solid-js'
+import { Component, For, createEffect, createSignal, onMount } from 'solid-js'
 import { render } from 'solid-js/web'
 import * as exrLoader from 'three/examples/jsm/loaders/EXRLoader'
 import fragmentGlsl from './fragment.glsl?raw'
@@ -8,6 +8,7 @@ import vertexGlsl from './vertex.glsl?raw'
 
 let canvas!: HTMLCanvasElement
 let gl!: WebGL2RenderingContext
+let program!: WebGLProgram
 
 const images = ['primaries-sweep', 'highlight-desaturation', 'cornell-box']
 type Image = (typeof images)[number]
@@ -18,6 +19,8 @@ const texture: Record<Image, WebGLTexture | undefined> = {
 }
 
 export const Main: Component = () => {
+    const [activeImage, setActiveImage] = createSignal<Image>('primaries-sweep')
+
     onMount(async () => {
         gl = canvas.getContext('webgl2', { antialiasing: false })! as WebGL2RenderingContext
         canvas.width = 1280
@@ -43,7 +46,7 @@ export const Main: Component = () => {
         const vertexShader = createShader(gl.VERTEX_SHADER, vertexGlsl)
         const fragmentShader = createShader(gl.FRAGMENT_SHADER, fragmentGlsl)
 
-        const program = gl.createProgram()
+        program = gl.createProgram()
         gl.attachShader(program, vertexShader)
         gl.attachShader(program, fragmentShader)
         gl.linkProgram(program)
@@ -55,7 +58,7 @@ export const Main: Component = () => {
 
         const uniformLocation = gl.getUniformLocation(program, 'u_texture')
         gl.activeTexture(gl.TEXTURE0)
-        gl.bindTexture(gl.TEXTURE_2D, texture['cornell-box']!)
+        gl.bindTexture(gl.TEXTURE_2D, texture[activeImage()]!)
         gl.uniform1i(uniformLocation, 0)
 
         const positions = [-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0]
@@ -67,6 +70,18 @@ export const Main: Component = () => {
 
         gl.enableVertexAttribArray(positionAttributeLocation)
         gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0)
+
+        gl.drawArrays(gl.TRIANGLES, 0, 6)
+    })
+
+    createEffect(() => {
+        const activeImage_ = activeImage()
+        if (!gl || !program) return
+
+        const uniformLocation = gl.getUniformLocation(program, 'u_texture')
+        gl.activeTexture(gl.TEXTURE0)
+        gl.bindTexture(gl.TEXTURE_2D, texture[activeImage_]!)
+        gl.uniform1i(uniformLocation, 0)
 
         gl.drawArrays(gl.TRIANGLES, 0, 6)
     })
@@ -88,6 +103,23 @@ export const Main: Component = () => {
     return (
         <>
             <canvas ref={canvas} />
+            <div class="controls">
+                <h2>Controls</h2>
+                <section>
+                    <label>Image</label>
+                    <For each={images}>
+                        {image => (
+                            <button
+                                type="button"
+                                onClick={() => setActiveImage(image)}
+                                classList={{ active: image === activeImage() }}
+                            >
+                                {image}
+                            </button>
+                        )}
+                    </For>
+                </section>
+            </div>
         </>
     )
 }
